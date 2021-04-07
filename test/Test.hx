@@ -1,13 +1,9 @@
 package;
 
 import sys.FileSystem;
-import cpp.Float64;
-import haxe.io.UInt8Array;
 import cpp.Pointer;
 import cpp.UInt64;
-import sys.io.FileInput;
 import haxe.io.Path;
-import sys.io.File;
 import cpp.UInt32;
 import cpp.SizeT;
 import nestegg.Nestegg;
