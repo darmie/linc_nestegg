@@ -84,7 +84,7 @@ class Test {
 			nestegg.track_codec_data_count(i, Pointer.addressOf(data_items));
 
 			for (j in 0...data_items) {
-				nestegg.track_codec_data(i, j, Pointer.addressOf(codec_data), Pointer.addressOf(length));
+				nestegg.track_codec_data(i, j, Pointer.ofArray(codec_data).rawCast(), Pointer.addressOf(length));
 				var _length:Int = cast length;
 				Sys.println(' (${codec_data}, ${_length})');
 			}

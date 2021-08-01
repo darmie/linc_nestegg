@@ -1,5 +1,6 @@
 package nestegg;
 
+import cpp.RawPointer;
 import haxe.io.UInt8Array;
 import sys.io.FileInput;
 import sys.io.File;
@@ -28,6 +29,8 @@ extern class Nestegg {
 	@:native("linc::nestegg::sniff")
 	public static function sniff(buffer:cpp.ConstPointer<BytesData>, length:Int):Bool;
 
+	@:native("linc::nestegg::initCallbacks")
+	public static function init_callbacks(context:Pointer<Nestegg>, io:IO,  max_offset:Int64):Int;
    
 	public static inline function init(path:String, max_offset:cpp.Int64):Pointer<Nestegg> {
         return untyped  __cpp__("new linc::nestegg::nestegg({0},{1})", path, max_offset);
@@ -62,7 +65,7 @@ extern class Nestegg {
 	public function track_codec_data_count(track:cpp.UInt32, count:cpp.Pointer<UInt32>):Bool;
 
 	@:native("track_codec_data")
-	public function track_codec_data(track:cpp.UInt32, item:cpp.UInt32, data:Pointer<BytesData>, length:Pointer<SizeT>):Bool;
+	public function track_codec_data(track:cpp.UInt32, item:cpp.UInt32, data:RawPointer<UInt8>, length:Pointer<Int>):Bool;
 
 	@:native("track_video_params")
 	public function track_video_params(track:cpp.UInt32, params:cpp.Pointer<VideoParams>):Bool;
@@ -141,18 +144,25 @@ extern class Packet {
 @:structAccess
 @:keep
 @:include('linc_nestegg.h')
-@:native("linc::nestegg::io_buffer")
+@:native("nestegg_io")
 extern class IO {
-    public var buffer:BytesData;
-    public var length:Int;
-    public var offset:Int;
 
-    public static inline function init(buffer:BytesData, offset:Int):IO{
+	@:native("nestegg_io::userdata")
+    public var userdata:RawPointer<cpp.Void>;
+  
 
-        var _io:IO = untyped __cpp__("linc::nestegg::io_buffer{}");
-        _io.buffer = buffer;
-        _io.length = buffer.length;
-        _io.offset = 0;
+    public static inline function init(
+		readCallback:Callable<(buffer:RawPointer<cpp.Void>, length:Int, userdata:RawPointer<cpp.Void>)->Int>,
+		seekCallback:Callable<(offset:Int64, whence:Int, userdata:RawPointer<cpp.Void>)->Int>,
+		tellCallback:Callable<(user_handle:RawPointer<cpp.Void>)->Int64>
+		):IO {
+
+        var _io:IO = untyped __cpp__("nestegg_io{
+			{0},
+			{1},
+			{2},
+			NULL
+		}", readCallback, seekCallback, tellCallback);
 
         return _io;
     }

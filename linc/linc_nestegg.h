@@ -16,10 +16,25 @@ typedef struct nestegg nnestegg;
 namespace linc
 {
 
+    
     namespace nestegg
     {
+        static void logCallback(::nestegg *context, unsigned int severity, char const * format, ...)
+        {
+            if (severity >= NESTEGG_LOG_INFO) {
+                va_list args;
+                va_start(args, format);
+                vprintf(format, args);
+                va_end(args);
+            }
+        };
 
-        static void log_callback(::nestegg *ctx, unsigned int severity, char const *fmt, ...);
+
+        static int initCallbacks(::nestegg *context, nestegg_io io,  int64_t max_offset) {
+            return nestegg_init(&context, io, logCallback, max_offset);
+        };
+
+        // static void log_callback(::nestegg *ctx, unsigned int severity, char const *fmt, ...);
 
         /**
          * Three functions that implement the nestegg_io interface, operating on a io_buffer. 
@@ -257,12 +272,10 @@ namespace linc
             }
 
             bool track_codec_data(unsigned int track, unsigned int item,
-                                  ::cpp::Pointer<Array<unsigned char>> data, size_t *length)
+                                  unsigned char *data, size_t *length)
             {
-                
-                unsigned char *_data = (unsigned char *)data.get_raw()->mPtr->getBase();
-                int ret = nestegg_track_codec_data(ctx, track, item, &_data, length);
-                data.set_ref(Array_obj<unsigned char>::fromData(_data, *length));
+            
+                int ret = nestegg_track_codec_data(ctx, track, item, &data, length);
                 return ret == 0;
             }
 
